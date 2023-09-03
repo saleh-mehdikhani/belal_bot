@@ -95,7 +95,7 @@ def schedule_next_praying_time():
 
     now = time.localtime()
 
-    if now < praying_time["Fajr"]:
+    if now < praying_time["Fajr"] or now > praying_time["Maghrib"]:
         salat = Salat.Fajr
         start = praying_time["Fajr"]
         end = praying_time["Sunrise"]
@@ -108,7 +108,7 @@ def schedule_next_praying_time():
         start = praying_time["Maghrib"]
         end = praying_time["Midnight"]
     else:
-        print(f'Fetched time is not for today')
+        print(f'Oops! now:\n{now}\ntime:\n{praying_time}')
         return
 
     print(f"Next alarm is set for {time.strftime('%H:%M', start)}")
@@ -120,8 +120,9 @@ def schedule_next_praying_time():
 
 def get_prayer_times():
     # Make a request to the Aladhan API
-    url = f"http://api.aladhan.com/v1/timingsByCity//{int(time.time())}?"\
+    url = f"http://api.aladhan.com/v1/timingsByCity/{int(time.time())}?"\
           f"city={CITY}&country={COUNTRY}&method={ADHAN_METHOD}"
+    print(url)
     response = requests.get(url)
 
     if response.status_code == 200:
@@ -146,7 +147,7 @@ def get_prayer_times():
         # Print prayer times
         return prayer_times
     else:
-        print(f'Error fetching prayer times {response.status_code}.')
+        print(f'Error fetching prayer times: ({response.status_code}).')
         return None
 
 
