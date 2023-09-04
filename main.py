@@ -6,6 +6,7 @@ import json
 import time
 import toml
 from enum import Enum
+from datetime import date
 
 
 class Salat(Enum):
@@ -88,27 +89,37 @@ def send_praying_time(salat, start, end):
 
 
 def schedule_next_praying_time():
-    praying_time = get_prayer_times()
-    if praying_time is None:
+    today = date.today()
+    praying_time_today = get_prayer_times(today)
+    if praying_time_today is None:
         print("Oops! Praying time is not available!")
         return
 
     now = time.localtime()
 
-    if now < praying_time["Fajr"] or now > praying_time["Maghrib"]:
+    if now < praying_time_today["Fajr"]:
         salat = Salat.Fajr
-        start = praying_time["Fajr"]
-        end = praying_time["Sunrise"]
-    elif now < praying_time["Dhuhr"]:
+        start = praying_time_today["Fajr"]
+        end = praying_time_today["Sunrise"]
+    elif now < praying_time_today["Dhuhr"]:
         salat = Salat.Dhuhr
-        start = praying_time["Dhuhr"]
-        end = praying_time["Sunset"]
-    elif now < praying_time["Maghrib"]:
+        start = praying_time_today["Dhuhr"]
+        end = praying_time_today["Sunset"]
+    elif now < praying_time_today["Maghrib"]:
         salat = Salat.Maghrib
-        start = praying_time["Maghrib"]
-        end = praying_time["Midnight"]
+        start = praying_time_today["Maghrib"]
+        end = praying_time_today["Midnight"]
+    elif now > praying_time_today["Maghrib"]:
+        tomorrow = today + datetime.timedelta(days=1)
+        praying_time_tomorrow = get_prayer_times(tomorrow)
+        if praying_time_tomorrow is None:
+            print("Oops! Praying time of tomorrow is not available!")
+            return
+        salat = Salat.Fajr
+        start = praying_time_tomorrow["Fajr"]
+        end = praying_time_tomorrow["Sunrise"]
     else:
-        print(f'Oops! now:\n{now}\ntime:\n{praying_time}')
+        print(f'Oops, Compare error! now:\n{now}\ntime:\n{praying_time_today}')
         return
 
     print(f"Next alarm is set for {time.strftime('%H:%M', start)}")
@@ -118,9 +129,10 @@ def schedule_next_praying_time():
         send_praying_time, salat, start, end)
 
 
-def get_prayer_times():
+def get_prayer_times(date_time: datetime):
     # Make a request to the Aladhan API
-    url = f"http://api.aladhan.com/v1/timingsByCity/{int(time.time())}?"\
+    data_str = date_time.strftime('%d-%m-%Y')
+    url = f"http://api.aladhan.com/v1/timingsByCity/{data_str}?"\
           f"city={CITY}&country={COUNTRY}&method={ADHAN_METHOD}"
     print(url)
     response = requests.get(url)
