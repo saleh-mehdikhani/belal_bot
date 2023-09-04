@@ -5,6 +5,8 @@ import schedule
 import json
 import time
 import toml
+import sys
+import os
 from enum import Enum
 from datetime import date
 
@@ -17,11 +19,30 @@ class Salat(Enum):
 '''
 Read the configuration file
 '''
+if len(sys.argv) != 2:
+    print("Usage: python3 main.py /path/to/config_file")
+    sys.exit(1)
+
 # Specify the path to your TOML file
-toml_file = 'config.toml'
+toml_file = sys.argv[1]
+
+# Check if the filename is an absolute path; if not, make it absolute
+if not os.path.isabs(toml_file):
+    # Get the current working directory
+    current_directory = os.getcwd()
+    # Convert the relative path to an absolute path
+    toml_file = os.path.join(current_directory, toml_file)
+
 # Read data from the TOML file
-with open(toml_file, 'r') as file:
-    data = toml.load(file)
+try:
+    with open(toml_file, 'r') as file:
+        data = toml.load(file)
+except FileNotFoundError:
+    print(f"Error: File '{toml_file}' not found.")
+    sys.exit(1)
+except Exception as e:
+    print(f"An error occurred: {e}")
+    sys.exit(1)
 
 # Replace These variables with the proper one fits to your needs
 TELEGRAM_BOT_TOKEN = data["telegram"]["bot_token"]
