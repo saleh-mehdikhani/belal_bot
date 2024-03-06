@@ -12,6 +12,7 @@ from enum import Enum
 from datetime import date
 import openpyxl
 from tzlocal import get_localzone
+import pytz
 
 
 class Salat(Enum):
@@ -56,6 +57,7 @@ EXCEL_FILES_PATH = data["source"]["excel"]["root_path"]
 CITY = data["source"]["aladhan"]["city"]
 COUNTRY = data["source"]["aladhan"]["country"]
 ADHAN_METHOD = data["source"]["aladhan"]["method"]
+TIME_ZONE = data["timezone"]["zone"]
 '''
 Methods:
 Muslim World League (MWL) - Method value: "1"
@@ -77,11 +79,16 @@ horizon and Isha at 14 degrees.
 Shia Ithna Ashari (Jafari) - Method value: "8"
 '''
 
-# Convert time from local time zone to Helsinki time zone
-def convert_to_local_server_time(city_time):
-    # Get the local time zone
+# Convert time from the adhan time zone to the local server time zone
+def convert_to_local_server_datetime(timestamp):
+    # convert timestamp to localized datetime
+    adhan_datetime = datetime.datetime.fromtimestamp(time.mktime(timestamp))
+    desired_timezone = pytz.timezone(TIME_ZONE)
+    localized_datetime = desired_timezone.localize(adhan_datetime)
+
+    # Convert localized datetime to the server timezone
     local_tz = get_localzone()
-    local_time = city_time.astimezone(local_tz)
+    local_time = localized_datetime.astimezone(local_tz)
     return local_time
 
 # Function to send a message via the Telegram Bot API
@@ -156,9 +163,8 @@ def schedule_next_praying_time():
         return
 
     # Schedule the next message based on the next sunrise or sunset time
-    start_datetime = datetime.datetime.fromtimestamp(time.mktime(start))
-    print(f"Next alarm for the target city: {start_datetime.strftime('%H:%M')}")
-    local_time = convert_to_local_server_time(start_datetime)
+    print(f"Next alarm for the target city: {time.strftime('%H:%M', start)}")
+    local_time = convert_to_local_server_datetime(start)
     print(f"Next alarm is set for local time: {local_time.strftime('%H:%M')}")
     schedule.every().day.at(local_time.strftime('%H:%M')).do(
         send_praying_time, salat, start, end)

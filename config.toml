@@ -10,6 +10,9 @@ city = "put a city name here"
 country = "put name of the country"
 method = "a number between 1 to 8"
 
+[timezone]
+zone = 'Europe/Helsinki'
+
 [telegram]
 bot_token = 'telegram bot api token'
 chat_id = 'chat id of the channel'
