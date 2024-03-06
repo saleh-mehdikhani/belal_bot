@@ -11,6 +11,7 @@ import os
 from enum import Enum
 from datetime import date
 import openpyxl
+from tzlocal import get_localzone
 
 
 class Salat(Enum):
@@ -76,6 +77,12 @@ horizon and Isha at 14 degrees.
 Shia Ithna Ashari (Jafari) - Method value: "8"
 '''
 
+# Convert time from local time zone to Helsinki time zone
+def convert_to_local_server_time(city_time):
+    # Get the local time zone
+    local_tz = get_localzone()
+    local_time = city_time.astimezone(local_tz)
+    return local_time
 
 # Function to send a message via the Telegram Bot API
 def send_telegram_message(message):
@@ -151,7 +158,9 @@ def schedule_next_praying_time():
     print(f"Next alarm is set for {time.strftime('%H:%M', start)}")
 
     # Schedule the next message based on the next sunrise or sunset time
-    schedule.every().day.at(time.strftime('%H:%M', start)).do(
+    start_datetime = datetime.datetime.fromtimestamp(time.mktime(start))
+    local_time = convert_to_local_server_time(start_datetime)
+    schedule.every().day.at(local_time.strftime('%H:%M')).do(
         send_praying_time, salat, start, end)
 
 
