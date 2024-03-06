@@ -155,11 +155,11 @@ def schedule_next_praying_time():
         print(f'Oops, Compare error! now:\n{now}\ntime:\n{praying_time_today}')
         return
 
-    print(f"Next alarm is set for {time.strftime('%H:%M', start)}")
-
     # Schedule the next message based on the next sunrise or sunset time
     start_datetime = datetime.datetime.fromtimestamp(time.mktime(start))
+    print(f"Next alarm for the target city: {start_datetime.strftime('%H:%M')}")
     local_time = convert_to_local_server_time(start_datetime)
+    print(f"Next alarm is set for local time: {local_time.strftime('%H:%M')}")
     schedule.every().day.at(local_time.strftime('%H:%M')).do(
         send_praying_time, salat, start, end)
 
