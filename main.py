@@ -135,7 +135,10 @@ def schedule_next_praying_time():
         print("Oops! Praying time is not available!")
         return
 
-    now = time.localtime()
+    # Get current time of the target city
+    target_city_timezone = pytz.timezone(TIME_ZONE)
+    current_target_time = datetime.datetime.now(target_city_timezone)
+    now = current_target_time.timetuple()
 
     if now < praying_time_today["Fajr"]:
         salat = Salat.Fajr
