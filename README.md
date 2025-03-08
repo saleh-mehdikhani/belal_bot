@@ -10,7 +10,7 @@ pip install -r requirements.txt
 
 Then run the main module:
 ```
-python3 main.py
+python3 main.py /path/to/config_file
 ```
 
 Note: Replace the required configuration at config.toml file.

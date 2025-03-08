@@ -3,6 +3,7 @@ import string
 
 import requests
 import schedule
+import random
 import json
 import time
 import toml
@@ -58,6 +59,7 @@ CITY = data["source"]["aladhan"]["city"]
 COUNTRY = data["source"]["aladhan"]["country"]
 ADHAN_METHOD = data["source"]["aladhan"]["method"]
 TIME_ZONE = data["timezone"]["zone"]
+VOICE_DIR = data["voice"]["voice_dir"]
 '''
 Methods:
 Muslim World League (MWL) - Method value: "1"
@@ -99,6 +101,27 @@ def send_telegram_message(message):
     print(response.json())
 
 
+def send_telegram_voice_message(message, voice_path):
+    """
+    Send a text message and a voice file to the Telegram chat.
+    """
+    # Send text message
+    send_telegram_message(message)
+
+    # Send voice file
+    url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendVoice'
+
+    if not os.path.exists(voice_path):
+        print(f"Error: Voice file '{voice_path}' not found.")
+        return
+
+    with open(voice_path, 'rb') as voice:
+        adhan_file = {'voice': voice}
+        msg_data = {'chat_id': TELEGRAM_CHAT_ID, 'caption': message}
+        response = requests.post(url, data=msg_data, files=adhan_file)
+        print(response.json())
+
+
 def send_praying_time(salat, start, end):
     next_event_time = None
 
@@ -121,8 +144,19 @@ def send_praying_time(salat, start, end):
         print(f"Salat time is invalid, don't send any message")
         return
 
-    # Send the message
-    send_telegram_message(message)
+    # Select a random voice file from the voice directory and send the message
+    if not os.path.exists(VOICE_DIR) or not os.path.isdir(VOICE_DIR):
+        print(f"Warning: Voice directory '{VOICE_DIR}' not found.")
+        send_telegram_message(message)
+    else:
+        voice_files = [f for f in os.listdir(VOICE_DIR) if f.endswith(".mp3")]
+        if not voice_files:
+            print("Warning: No MP3 files found. Sending text only.")
+            send_telegram_message(message)
+        else:
+            voice_file = random.choice(voice_files)
+            voice_path = os.path.join(VOICE_DIR, voice_file)
+            send_telegram_voice_message(message, voice_path)
 
     # Cancel the schedule to execute it only once
     return schedule.CancelJob

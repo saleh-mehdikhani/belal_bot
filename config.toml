@@ -3,7 +3,7 @@
 mode = "excel"
 
 [source.excel]
-root_path = "path/to/excel/files"
+root_path = "adhan_excel/helsinki"
 
 [source.aladhan]
 city = "put a city name here"
@@ -16,3 +16,6 @@ zone = 'Europe/Helsinki'
 [telegram]
 bot_token = 'telegram bot api token'
 chat_id = 'chat id of the channel'
+
+[voice]
+voice_dir = 'path to the voices'
