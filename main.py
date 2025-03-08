@@ -105,10 +105,6 @@ def send_telegram_voice_message(message, voice_path):
     """
     Send a text message and a voice file to the Telegram chat.
     """
-    # Send text message
-    send_telegram_message(message)
-
-    # Send voice file
     url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendVoice'
 
     if not os.path.exists(voice_path):
